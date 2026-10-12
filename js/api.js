@@ -5,7 +5,7 @@
   'use strict';
 
   // Configure aqui a URL da sua API em producao apos o deploy (ex: 'https://sua-api.vercel.app/api')
-  const PRODUCTION_API_URL = 'https://corsair-backend.vercel.app';
+  const PRODUCTION_API_URL = 'https://corsair-backend.vercel.app/api';
 
   // Base URL dinamica
   const getBaseUrl = () => {
