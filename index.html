@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sistema de Gerenciamento de Perifericos Corsair">
+  <title>Corsair - Gerenciamento de Perifericos</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Cabecalho Principal -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <svg class="brand-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+        <div class="brand-text">
+          <span class="brand-title">CORSAIR</span>
+          <span class="brand-subtitle">Gerenciador de Perifericos</span>
+        </div>
+      </div>
+      <button id="btn-novo-periferico" class="btn btn-primary" type="button">
+        <svg class="btn-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span>Adicionar Periferico</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Conteudo Principal -->
+  <main class="app-main">
+    <div class="main-container">
+      <!-- Area de Notificacoes / Toast -->
+      <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+      <!-- Barra de Controle e Estatisticas -->
+      <section class="toolbar-section">
+        <div class="toolbar-info">
+          <h1 class="page-title">Catalogo de Perifericos</h1>
+          <p id="total-perifericos" class="page-count">Carregando itens...</p>
+        </div>
+        <div class="toolbar-actions">
+          <button id="btn-recarregar" class="btn btn-secondary btn-icon-only" type="button" title="Recarregar lista">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <polyline points="1 20 1 14 7 14"></polyline>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- Estado de Carregamento -->
+      <section id="state-loading" class="state-container" aria-label="Carregando">
+        <div class="spinner"></div>
+        <p class="state-text">Carregando perifericos...</p>
+      </section>
+
+      <!-- Estado de Erro ao Carregar -->
+      <section id="state-error" class="state-container hidden" aria-label="Erro ao carregar">
+        <div class="state-icon-wrapper error">
+          <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <h2 class="state-title">Nao foi possivel carregar os perifericos</h2>
+        <p id="state-error-message" class="state-text">Verifique se o servidor esta em execucao e tente novamente.</p>
+        <button id="btn-tentar-novamente" class="btn btn-primary" type="button">Tentar Novamente</button>
+      </section>
+
+      <!-- Estado Vazio -->
+      <section id="state-empty" class="state-container hidden" aria-label="Nenhum periferico cadastrado">
+        <div class="state-icon-wrapper">
+          <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+        </div>
+        <h2 class="state-title">Nenhum periferico cadastrado</h2>
+        <p class="state-text">Comece adicionando seu primeiro periferico da Corsair no catalogo.</p>
+        <button id="btn-adicionar-primeiro" class="btn btn-primary" type="button">Adicionar Periferico</button>
+      </section>
+
+      <!-- Grade de Listagem de Perifericos -->
+      <section id="perifericos-grid" class="cards-grid hidden" aria-label="Lista de perifericos"></section>
+    </div>
+  </main>
+
+  <!-- Modal de Formulario (Cadastro / Edicao) -->
+  <div id="modal-form" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-form-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="modal-form-title" class="modal-title">Cadastrar Periferico</h2>
+        <button id="btn-fechar-form" class="btn-close" type="button" aria-label="Fechar janela">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <form id="periferico-form" class="modal-form" novalidate>
+        <input type="hidden" id="form-id" name="id">
+
+        <div class="form-group">
+          <label for="form-marca" class="form-label">Marca</label>
+          <input type="text" id="form-marca" name="marca" class="form-input" value="Corsair" readonly required>
+          <small class="form-hint">Restrito a marca Corsair no escopo atual.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="form-modelo" class="form-label">Modelo <span class="required">*</span></label>
+          <input type="text" id="form-modelo" name="modelo" class="form-input" placeholder="Ex: K70 RGB PRO" required maxlength="100">
+          <span class="field-error" id="error-modelo"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="form-preco" class="form-label">Preco (R$) <span class="required">*</span></label>
+          <input type="number" id="form-preco" name="preco" class="form-input" placeholder="0.00" step="0.01" min="0" required>
+          <span class="field-error" id="error-preco"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="form-foto" class="form-label">URL da Foto <span class="required">*</span></label>
+          <input type="url" id="form-foto" name="foto" class="form-input" placeholder="https://exemplo.com/imagem.jpg" required>
+          <span class="field-error" id="error-foto"></span>
+        </div>
+
+        <!-- Preview da Foto -->
+        <div class="foto-preview-container">
+          <span class="preview-label">Pre-visualizacao da imagem:</span>
+          <div class="foto-preview-box" id="foto-preview-box">
+            <span class="preview-placeholder-text">A imagem aparecera aqui</span>
+          </div>
+        </div>
+
+        <!-- Mensagem de Erro Geral do Formulario -->
+        <div id="form-general-error" class="form-general-error hidden" role="alert"></div>
+
+        <div class="modal-actions">
+          <button id="btn-cancelar-form" class="btn btn-secondary" type="button">Cancelar</button>
+          <button id="btn-salvar-form" class="btn btn-primary" type="submit">
+            <span id="btn-salvar-texto">Salvar</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmacao de Exclusao -->
+  <div id="modal-confirm" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-confirm-title">
+    <div class="modal-card modal-sm">
+      <div class="modal-header">
+        <h2 id="modal-confirm-title" class="modal-title">Confirmar Exclusao</h2>
+        <button id="btn-fechar-confirm" class="btn-close" type="button" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-message">
+          Tem certeza de que deseja excluir o periferico <strong id="confirm-item-nome"></strong>?
+        </p>
+        <p class="confirm-warning">Esta acao nao podera ser desfeita.</p>
+      </div>
+      <div class="modal-actions">
+        <button id="btn-cancelar-exclusao" class="btn btn-secondary" type="button">Cancelar</button>
+        <button id="btn-confirmar-exclusao" class="btn btn-danger" type="button">
+          <span id="btn-excluir-texto">Excluir</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p>Sistema de Gerenciamento de Perifericos Corsair &bull; Aplicacao desacoplada Node.js / MongoDB</p>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
